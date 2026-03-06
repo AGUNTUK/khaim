@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, ShoppingCart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useUser } from '../context/UserContext'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -9,6 +10,7 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { cartCount } = useCart()
+  const { isAuthenticated, currentUser } = useUser()
 
   const handleCartClick = () => {
     navigate('/order')
@@ -19,6 +21,7 @@ export default function Navbar() {
     { path: '/menu', label: 'Menu' },
     { path: '/order', label: 'Order' },
     { path: '/reservation', label: 'Reservation' },
+    { path: '/profile', label: isAuthenticated ? currentUser?.name?.split(' ')[0] || 'Profile' : 'Profile' },
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ]
@@ -28,7 +31,7 @@ export default function Navbar() {
       <div className="container">
         <div className="navbar-content">
           <Link to="/" className="navbar-logo">
-            <img src="/logo.png" alt="KHAIM" style={{ width: 36, height: 36, borderRadius: 8 }} />
+            <img src="/logo.png" alt="KHAIM" className="navbar-logo-img" />
           </Link>
 
           <div className="navbar-links hide-mobile">
@@ -49,7 +52,7 @@ export default function Navbar() {
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </button>
 
-            <button 
+            <button
               className="menu-toggle hide-desktop"
               onClick={() => setMenuOpen(!menuOpen)}
             >

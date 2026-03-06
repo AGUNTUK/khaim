@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Search, Plus, Minus, X, ShoppingBag, MapPin, Clock, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { CheckCircle, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react'
 import { useAdmin } from '../context/AdminContext'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
+import { useUser } from '../context/UserContext'
 import './Order.css'
 
 const categories = [
@@ -14,27 +15,48 @@ const categories = [
   { id: 'noodles', name: 'Noodles' },
   { id: 'drinks', name: 'Drinks' },
   { id: 'desserts', name: 'Desserts' },
+  { id: 'specials', name: 'Specials' },
 ]
 
 export default function Order() {
-  const { menuItems, settings } = useAdmin()
+  const { menuItems, createOrder } = useAdmin()
   const { cart, addToCart, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount } = useCart()
   const { addToast } = useToast()
-  const navigate = useNavigate()
-  
+  const {
+    isAuthenticated: isUserAuthenticated,
+    currentUser,
+    getDefaultAddress,
+  } = useUser()
+
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [orderType, setOrderType] = useState('delivery')
-  const [step, setStep] = useState(1) // 1: browse, 2: details, 3: confirmation
-  
+  const [step, setStep] = useState(1)
+
   const [orderDetails, setOrderDetails] = useState({
     name: '',
     phone: '',
     address: '',
     instructions: '',
-    payment: 'cod'
+    payment: 'cod',
   })
+
   const [orderId, setOrderId] = useState('')
+
+  useEffect(() => {
+    if (!isUserAuthenticated || !currentUser) {
+      return
+    }
+
+    const defaultAddress = getDefaultAddress()
+
+    setOrderDetails(prev => ({
+      ...prev,
+      name: prev.name || currentUser.name || '',
+      phone: prev.phone || currentUser.phone || '',
+      address: prev.address || defaultAddress?.line1 || '',
+    }))
+  }, [currentUser, getDefaultAddress, isUserAuthenticated])
 
   const filteredItems = menuItems.filter(item => {
     const matchesCategory = activeCategory === 'all' || item.category === activeCategory
@@ -42,22 +64,40 @@ export default function Order() {
     return matchesCategory && matchesSearch && item.available
   })
 
-  const handleAddToCart = (item) => {
+  const handleAddToCart = item => {
     addToCart(item)
-    addToast(`Added ${item.name} to cart! 🛒`, 'success')
+    addToast(`Added ${item.name} to cart.`, 'success')
   }
 
-  const handlePlaceOrder = (e) => {
-    e.preventDefault()
-    
-    // Generate order ID
-    const newOrderId = `ORD-${Date.now().toString().slice(-6)}`
-    setOrderId(newOrderId)
-    
-    // Clear cart and show confirmation
+  const handlePlaceOrder = event => {
+    event.preventDefault()
+
+    if (cart.length === 0) {
+      addToast('Your cart is empty.', 'error')
+      return
+    }
+
+    const placedOrder = createOrder({
+      customerName: orderDetails.name,
+      phone: orderDetails.phone,
+      address: orderType === 'delivery' ? orderDetails.address : '',
+      instructions: orderDetails.instructions,
+      payment: orderDetails.payment,
+      type: orderType,
+      total,
+      items: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      userId: currentUser?.id || null,
+    })
+
+    setOrderId(placedOrder.id)
     clearCart()
     setStep(3)
-    addToast('Order placed successfully! ✅', 'success')
+    addToast('Order placed successfully.', 'success')
   }
 
   const deliveryFee = orderType === 'delivery' && cartTotal < 500 ? 50 : 0
@@ -71,9 +111,9 @@ export default function Order() {
             <div className="confirmation-icon">
               <CheckCircle size={64} />
             </div>
-            <h2>Order Placed Successfully! 🎉</h2>
-            <p>Thank you for your order</p>
-            
+            <h2>Order Placed Successfully</h2>
+            <p>Thank you for ordering with KHAIM.</p>
+
             <div className="confirmation-details">
               <div className="confirmation-row">
                 <span>Order ID:</span>
@@ -87,21 +127,26 @@ export default function Order() {
                 <span>Order Type:</span>
                 <strong>{orderType === 'delivery' ? 'Delivery' : 'Pickup'}</strong>
               </div>
+              <div className="confirmation-row">
+                <span>Status:</span>
+                <strong>Pending</strong>
+              </div>
             </div>
-            
+
             <p className="confirmation-note">
-              A confirmation has been sent to your phone. We'll call you at {orderDetails.phone} to confirm your order.
+              We will contact you at {orderDetails.phone} to confirm your order.
             </p>
-            
+
             <div className="confirmation-actions">
-              <a 
-                href={`https://wa.me/8801744750870?text=Hello, I just placed order ${orderId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="clay-btn clay-btn-secondary"
-              >
-                📱 Confirm on WhatsApp
-              </a>
+              {isUserAuthenticated ? (
+                <Link to="/profile?tab=orders" className="clay-btn clay-btn-secondary">
+                  Track My Orders
+                </Link>
+              ) : (
+                <Link to="/profile" className="clay-btn clay-btn-secondary">
+                  Sign In to Track
+                </Link>
+              )}
               <Link to="/" className="clay-btn clay-btn-primary">
                 Back to Home
               </Link>
@@ -116,11 +161,10 @@ export default function Order() {
     <div className="order-page">
       <div className="container">
         <div className="order-layout">
-          {/* Left - Menu Items */}
           <div className="order-menu">
             <div className="order-header">
-              <h1>🛒 Order Online</h1>
-              <p>Fresh, flavourful & made with love</p>
+              <h1>Order Online</h1>
+              <p>Fresh, flavourful and made with love.</p>
             </div>
 
             <div className="order-controls">
@@ -130,19 +174,19 @@ export default function Order() {
                   type="text"
                   placeholder="Search dishes..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={event => setSearchQuery(event.target.value)}
                   className="clay-input"
                 />
               </div>
 
               <div className="category-tabs">
-                {categories.map(cat => (
+                {categories.map(category => (
                   <button
-                    key={cat.id}
-                    className={`category-tab ${activeCategory === cat.id ? 'active' : ''}`}
-                    onClick={() => setActiveCategory(cat.id)}
+                    key={category.id}
+                    className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
+                    onClick={() => setActiveCategory(category.id)}
                   >
-                    {cat.name}
+                    {category.name}
                   </button>
                 ))}
               </div>
@@ -159,7 +203,7 @@ export default function Order() {
                     <p>{item.description}</p>
                     <div className="menu-card-footer">
                       <span className="price">BDT {item.price}</span>
-                      <button 
+                      <button
                         className="clay-btn clay-btn-primary clay-btn-small"
                         onClick={() => handleAddToCart(item)}
                       >
@@ -172,10 +216,11 @@ export default function Order() {
             </div>
           </div>
 
-          {/* Right - Cart Sidebar */}
           <div className="cart-sidebar clay-card">
             <div className="cart-header">
-              <h3><ShoppingBag size={20} /> Your Cart</h3>
+              <h3>
+                <ShoppingBag size={20} /> Your Cart
+              </h3>
               <span className="cart-count">{cartCount} items</span>
             </div>
 
@@ -229,24 +274,23 @@ export default function Order() {
                   </div>
                 </div>
 
-                {/* Order Type Toggle */}
                 <div className="order-type-toggle">
-                  <button 
+                  <button
                     className={orderType === 'delivery' ? 'active' : ''}
                     onClick={() => setOrderType('delivery')}
                   >
-                    🏠 Delivery
+                    Delivery
                   </button>
-                  <button 
+                  <button
                     className={orderType === 'pickup' ? 'active' : ''}
                     onClick={() => setOrderType('pickup')}
                   >
-                    🏃 Pickup
+                    Pickup
                   </button>
                 </div>
 
                 {step === 1 ? (
-                  <button 
+                  <button
                     className="clay-btn clay-btn-primary w-full"
                     onClick={() => setStep(2)}
                   >
@@ -260,7 +304,12 @@ export default function Order() {
                         type="text"
                         className="clay-input"
                         value={orderDetails.name}
-                        onChange={(e) => setOrderDetails({...orderDetails, name: e.target.value})}
+                        onChange={event =>
+                          setOrderDetails({
+                            ...orderDetails,
+                            name: event.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -270,7 +319,12 @@ export default function Order() {
                         type="tel"
                         className="clay-input"
                         value={orderDetails.phone}
-                        onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
+                        onChange={event =>
+                          setOrderDetails({
+                            ...orderDetails,
+                            phone: event.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -281,26 +335,50 @@ export default function Order() {
                           type="text"
                           className="clay-input"
                           value={orderDetails.address}
-                          onChange={(e) => setOrderDetails({...orderDetails, address: e.target.value})}
+                          onChange={event =>
+                            setOrderDetails({
+                              ...orderDetails,
+                              address: event.target.value,
+                            })
+                          }
                           required
                         />
                       </div>
                     )}
                     <div className="form-group">
+                      <label className="form-label">Special Instructions</label>
+                      <textarea
+                        className="clay-textarea"
+                        value={orderDetails.instructions}
+                        onChange={event =>
+                          setOrderDetails({
+                            ...orderDetails,
+                            instructions: event.target.value,
+                          })
+                        }
+                        placeholder="Any notes for delivery or kitchen (optional)"
+                      />
+                    </div>
+                    <div className="form-group">
                       <label className="form-label">Payment Method</label>
                       <select
                         className="clay-select"
                         value={orderDetails.payment}
-                        onChange={(e) => setOrderDetails({...orderDetails, payment: e.target.value})}
+                        onChange={event =>
+                          setOrderDetails({
+                            ...orderDetails,
+                            payment: event.target.value,
+                          })
+                        }
                       >
-                        <option value="cod">💵 Cash on Delivery</option>
-                        <option value="bkash">📱 bKash</option>
-                        <option value="nagad">💳 Nagad</option>
+                        <option value="cod">Cash on Delivery</option>
+                        <option value="bkash">bKash</option>
+                        <option value="nagad">Nagad</option>
                       </select>
                     </div>
-                    
+
                     <div className="form-actions">
-                      <button 
+                      <button
                         type="button"
                         className="clay-btn clay-btn-secondary"
                         onClick={() => setStep(1)}

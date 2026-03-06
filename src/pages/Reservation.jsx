@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Calendar, Clock, Users, Phone, CheckCircle } from 'lucide-react'
+import { Calendar, CheckCircle, Clock, Phone, Users } from 'lucide-react'
+import { useAdmin } from '../context/AdminContext'
 import { useToast } from '../context/ToastContext'
 import './Reservation.css'
 
@@ -11,7 +12,7 @@ const partySizes = [
 ]
 
 const timeSlots = []
-for (let hour = 10; hour <= 21; hour++) {
+for (let hour = 10; hour <= 21; hour += 1) {
   timeSlots.push(`${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}`)
   if (hour < 21) {
     timeSlots.push(`${hour > 12 ? hour - 12 : hour}:30 ${hour >= 12 ? 'PM' : 'AM'}`)
@@ -20,21 +21,32 @@ for (let hour = 10; hour <= 21; hour++) {
 
 export default function Reservation() {
   const { addToast } = useToast()
+  const { createReservation } = useAdmin()
   const [submitted, setSubmitted] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     date: '',
     time: '',
     partySize: '',
-    requests: ''
+    requests: '',
   })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = event => {
+    event.preventDefault()
+
+    createReservation({
+      name: formData.name,
+      phone: formData.phone,
+      date: formData.date,
+      time: formData.time,
+      partySize: formData.partySize,
+      specialRequests: formData.requests,
+    })
+
     setSubmitted(true)
-    addToast('Reservation request submitted! 📅', 'success')
+    addToast('Reservation request submitted.', 'success')
   }
 
   if (submitted) {
@@ -45,18 +57,29 @@ export default function Reservation() {
             <div className="success-icon">
               <CheckCircle size={64} />
             </div>
-            <h2>Reservation Requested! 🎉</h2>
+            <h2>Reservation Requested</h2>
             <p>Thank you for your reservation request.</p>
-            
+
             <div className="success-details">
-              <p><strong>Name:</strong> {formData.name}</p>
-              <p><strong>Party Size:</strong> {formData.partySize} People</p>
-              <p><strong>Date:</strong> {formData.date}</p>
-              <p><strong>Time:</strong> {formData.time}</p>
+              <p>
+                <strong>Name:</strong> {formData.name}
+              </p>
+              <p>
+                <strong>Party Size:</strong> {formData.partySize} People
+              </p>
+              <p>
+                <strong>Date:</strong> {formData.date}
+              </p>
+              <p>
+                <strong>Time:</strong> {formData.time}
+              </p>
             </div>
-            
+
             <div className="success-note">
-              <p>📞 We will call you at <strong>{formData.phone}</strong> within 30 minutes to confirm your reservation.</p>
+              <p>
+                We will call you at <strong>{formData.phone}</strong> within 30 minutes to confirm
+                your reservation.
+              </p>
             </div>
           </div>
         </div>
@@ -68,7 +91,7 @@ export default function Reservation() {
     <div className="reservation-page">
       <div className="container">
         <div className="reservation-header">
-          <h1>📅 Table Reservation</h1>
+          <h1>Table Reservation</h1>
           <p>Reserve your table at Shapla Chattar, Rangpur</p>
         </div>
 
@@ -76,7 +99,7 @@ export default function Reservation() {
           <div className="reservation-form-section">
             <form className="reservation-form clay-card" onSubmit={handleSubmit}>
               <h3>Reservation Details</h3>
-              
+
               <div className="form-group">
                 <label className="form-label">
                   <Users size={18} /> Full Name
@@ -86,7 +109,7 @@ export default function Reservation() {
                   className="clay-input"
                   placeholder="Enter your name"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={event => setFormData({ ...formData, name: event.target.value })}
                   required
                 />
               </div>
@@ -100,7 +123,7 @@ export default function Reservation() {
                   className="clay-input"
                   placeholder="017XXXXXXXX"
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={event => setFormData({ ...formData, phone: event.target.value })}
                   required
                 />
               </div>
@@ -114,7 +137,7 @@ export default function Reservation() {
                     type="date"
                     className="clay-input"
                     value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    onChange={event => setFormData({ ...formData, date: event.target.value })}
                     min={new Date().toISOString().split('T')[0]}
                     required
                   />
@@ -127,12 +150,14 @@ export default function Reservation() {
                   <select
                     className="clay-select"
                     value={formData.time}
-                    onChange={(e) => setFormData({...formData, time: e.target.value})}
+                    onChange={event => setFormData({ ...formData, time: event.target.value })}
                     required
                   >
                     <option value="">Select time</option>
                     {timeSlots.map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
+                      <option key={slot} value={slot}>
+                        {slot}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -148,7 +173,7 @@ export default function Reservation() {
                       key={size.value}
                       type="button"
                       className={`party-size-btn ${formData.partySize === size.value ? 'active' : ''}`}
-                      onClick={() => setFormData({...formData, partySize: size.value})}
+                      onClick={() => setFormData({ ...formData, partySize: size.value })}
                     >
                       {size.label}
                     </button>
@@ -162,8 +187,8 @@ export default function Reservation() {
                   className="clay-textarea"
                   placeholder="Birthday celebration, dietary requirements, etc."
                   value={formData.requests}
-                  onChange={(e) => setFormData({...formData, requests: e.target.value})}
-                ></textarea>
+                  onChange={event => setFormData({ ...formData, requests: event.target.value })}
+                />
               </div>
 
               <button type="submit" className="clay-btn clay-btn-primary w-full">
@@ -186,17 +211,17 @@ export default function Reservation() {
             <div className="info-card clay-card">
               <h3>Reservation Policy</h3>
               <ul>
-                <li>📞 Confirmation via phone call within 30 minutes</li>
-                <li>⏰ Table reserved for 2 hours after booking time</li>
-                <li>👨‍👩‍👧 Suitable for families, couples & groups</li>
-                <li>🎂 Special arrangements for celebrations</li>
+                <li>Confirmation via phone call within 30 minutes</li>
+                <li>Table reserved for 2 hours after booking time</li>
+                <li>Suitable for families, couples and groups</li>
+                <li>Special arrangements for celebrations</li>
               </ul>
             </div>
 
             <div className="info-card clay-card">
               <h3>Contact Us</h3>
-              <p>📍 Shapla Chattar, Rangpur</p>
-              <p>📞 01744-750870</p>
+              <p>Shapla Chattar, Rangpur</p>
+              <p>01744-750870</p>
             </div>
           </div>
         </div>

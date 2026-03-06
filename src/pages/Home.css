@@ -480,29 +480,40 @@
    Categories
    ======================================== */
 
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1.5rem;
+.categories-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
 }
 
-.category-card {
-  display: flex;
-  flex-direction: column;
+.category-tag {
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-button);
+  background: var(--card-surface);
+  box-shadow: var(--shadow-clay);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.category-tag:hover {
+  transform: translateY(-2px);
+  background: var(--accent);
+  color: var(--secondary);
 }
 
 .category-icon {
-  font-size: 2.5rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .category-name {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 700;
 }
 
 /* ========================================
@@ -828,8 +839,8 @@
     transform: translate(-50%, -50%) scale(0.85);
   }
   
-  .categories-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .categories-tags {
+    gap: 0.6rem;
   }
   
   .features-grid {
@@ -892,8 +903,9 @@
     font-size: 0.875rem;
   }
   
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .category-tag {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
   }
   
   .features-grid {

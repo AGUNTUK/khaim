@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Menu, ShoppingCart, Phone } from 'lucide-react'
+import { Home, Menu, ShoppingCart, Phone, User } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import './MobileNav.css'
 
@@ -11,6 +11,7 @@ export default function MobileNav() {
     { path: '/', label: 'Home', icon: Home },
     { path: '/menu', label: 'Menu', icon: Menu },
     { path: '/order', label: 'Cart', icon: ShoppingCart, badge: cartCount },
+    { path: '/profile', label: 'Profile', icon: User },
     { path: '/contact', label: 'Contact', icon: Phone },
   ]
 
@@ -20,7 +21,7 @@ export default function MobileNav() {
         {navItems.map(item => {
           const Icon = item.icon
           const isActive = location.pathname === item.path
-          
+
           return (
             <Link
               key={item.path}

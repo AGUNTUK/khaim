@@ -36,25 +36,6 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Theme */
-[data-theme="dark"] {
-  --primary: #F5A623;
-  --secondary: #E8440A;
-  --accent: #2D2520;
-  --background: #0F0B08;
-  --section-alt: #1A1512;
-  --card-surface: #1A1512;
-  --text-primary: #FFF3DC;
-  --text-muted: #A89080;
-  --gold-highlight: #F5A623;
-  --border-color: rgba(245, 166, 35, 0.15);
-  
-  --shadow-clay: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-clay-hover: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-clay-deep: 0 16px 48px rgba(0, 0, 0, 0.6), 0 6px 16px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(245, 166, 35, 0.3);
-}
-
 /* Reset & Base */
 *, *::before, *::after {
   margin: 0;
@@ -100,7 +81,11 @@ main {
   flex: 1;
 }
 
-.admin-main {
+.app-main {
+  flex: 1;
+}
+
+.app-main--admin {
   background: var(--background);
 }
 
@@ -217,17 +202,6 @@ img {
 .clay-btn-ghost:hover {
   background: var(--secondary);
   color: white;
-}
-
-[data-theme="dark"] .clay-btn-ghost {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-[data-theme="dark"] .clay-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: white;
 }
 
 .clay-btn-small {
@@ -605,107 +579,6 @@ img {
 }
 
 /* ========================================
-   Admin Styles
-   ======================================== */
-
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.admin-sidebar {
-  width: 260px;
-  background: var(--card-surface);
-  box-shadow: var(--shadow-clay);
-  padding: 1.5rem;
-  position: fixed;
-  height: 100vh;
-  overflow-y: auto;
-}
-
-.admin-content {
-  flex: 1;
-  margin-left: 260px;
-  padding: 2rem;
-}
-
-.admin-header {
-  background: var(--card-surface);
-  box-shadow: var(--shadow-clay);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.admin-stat-card {
-  background: var(--card-surface);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-clay);
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.admin-stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-small);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-}
-
-.admin-stat-info h3 {
-  font-size: 1.75rem;
-  font-family: var(--font-body);
-  font-weight: 700;
-}
-
-.admin-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-small);
-  color: var(--text-muted);
-  font-weight: 500;
-  transition: var(--transition-smooth);
-}
-
-.admin-nav-link:hover,
-.admin-nav-link.active {
-  background: var(--accent);
-  color: var(--secondary);
-}
-
-.admin-nav-link.active {
-  border-left: 3px solid var(--primary);
-}
-
-.admin-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-bottom: 2rem;
-}
-
-.admin-logo h2 {
-  font-size: 1.5rem;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ========================================
    Utility Classes
    ======================================== */
 
@@ -857,8 +730,8 @@ img {
   .mobile-nav {
     display: block;
   }
-  
-  main {
+
+  .app-main--public {
     padding-bottom: 5rem;
   }
 }
@@ -889,68 +762,10 @@ img {
   transform: scale(1.1);
 }
 
-/* Theme Toggle */
-.theme-toggle {
-  position: fixed;
-  top: 100px;
-  right: 1.5rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--card-surface);
-  box-shadow: var(--shadow-clay-deep);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 99;
-  border: 2px solid var(--border-color);
-  transition: var(--transition-smooth);
-}
-
-.theme-toggle:hover {
-  transform: scale(1.1);
-  border-color: var(--primary);
-}
-
-.theme-toggle svg {
-  transition: transform 0.5s ease;
-}
-
-.theme-toggle .sun-icon {
-  display: none;
-}
-
-.theme-toggle .moon-icon {
-  display: block;
-}
-
-[data-theme="dark"] .theme-toggle .sun-icon {
-  display: block;
-}
-
-[data-theme="dark"] .theme-toggle .moon-icon {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .theme-toggle {
-    top: auto;
-    bottom: 7rem;
-    right: 1rem;
-    width: 48px;
-    height: 48px;
-  }
-}
-
-/* Smooth theme transition */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
 @media (max-width: 768px) {
   .whatsapp-btn {
     bottom: 6rem;
     right: 1rem;
   }
 }
+
